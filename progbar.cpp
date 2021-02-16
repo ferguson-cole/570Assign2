@@ -8,9 +8,16 @@ Cole Ferguson, RedID - 820562542
 #include <stdio>
 #include <cstring>
 #include <ifstream>
+#include <thread>
 #define FILE_ERR -2
 
 using namespace std;
+
+typedef struct {
+        long *CurrentStatus;
+        long InitialValue;
+        long TerminationValue;
+} PROGRESS_STATUS;
 
 int main(int argc, char const *argv[])
 {
@@ -21,29 +28,49 @@ int main(int argc, char const *argv[])
     // Call the wordcount function
     long count = wordcount(argv[0]);
 
-    if(count > -1) cout << "There are " << count << " words in " << argv[0] << ".";
-    else if (count == FILE_ERR) cout << "Could not open file.";
+    if( count > -1 ) cout << "There are " << count << " words in " << argv[0] << ".";
+    else if ( count == FILE_ERR ) cout << "Could not open file.";
     else cout << "An error has occurred. Word count unknown.";
 }
 
 void * progress_monitor(void *) {
-    typedef struct {
-        long *CurrentStatus;
-        long InitialValue;
-        long TerminationValue;
-    } PROGRESS_STATUS;
+    // typedef struct {
+    //     long *CurrentStatus;
+    //     long InitialValue;
+    //     long TerminationValue;
+    // } PROGRESS_STATUS;
     return;
 }
 
-long wordcount(char *fd) {
+long wordcount(string filename) {
+    int size = 0;
     try
     {
-        fstream;
+        // Get the size of the file in bytes
+        size = stat(filename).st_size;
     }
-    catch(const exception& e)
+    catch(const std::exception& e)
     {
-        return FILE_ERR;
+        std::cerr << e.what() << '\n';
     }
     
+    typedef struct {
+        long *CurrentStatus;
+        long InitialValue = 0;
+        long TerminationValue = stat();
+    } PROGRESS_STATUS;
+
+    PROGRESS_STATUS *status;
+
+    ifstream file(filename);
+
+    thread progressMonitor(progress_monitor, status);
+
+    // Error handling (no arguments handled in main, file errors handled here)
+    if ( !file.is_open() ) return FILE_ERR;
+
+
+    // Wait for progress_monitor() to finish
+    progressMonitor.join();
     return -1;
 }
