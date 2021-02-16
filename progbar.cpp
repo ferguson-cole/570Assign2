@@ -1,5 +1,6 @@
 #include <stdio>
 #include <cstring>
+#include <ifstream>
 
 using namespace std;
 
@@ -10,10 +11,10 @@ int main(int argc, char const *argv[])
     else if (argc >= 2) printf("Too many arguments provided.");
 
     // Call the wordcount function
-    long count = wordcount();
-    if(count == nullptr) printf("An error has occurred. Word count unknown.");
-    string filename = "placeholder.txt";
-    else printf("There are %ld words in %s.", count, filename);
+    long count = wordcount(argv[0]);
+
+    if(count > -1) printf("There are %ld words in %s.", count, filename);
+    else printf("An error has occurred. Word count unknown.");
 }
 
 
@@ -27,5 +28,5 @@ void * progress_monitor(void *) {
 }
 
 long wordcount(char *fd) {
-    return 55;
+    return -1;
 }
