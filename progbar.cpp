@@ -5,13 +5,14 @@ I recognize that should this not be the case, I will be subject to penalties
 as outlined in the course syllabus.
 Cole Ferguson, RedID - 820562542
 */
-#include <stdio>
+#include <iostream>
 #include <cstring>
-#include <ifstream>
+#include <fstream>
 #include <thread>
 #define FILE_ERR -2
 
 using namespace std;
+
 
 typedef struct {
         long *CurrentStatus;
@@ -19,19 +20,6 @@ typedef struct {
         long TerminationValue;
 } PROGRESS_STATUS;
 
-int main(int argc, char const *argv[])
-{
-    // As of right now, only setting up for one argument
-    if(argc <= 0) cout << "No file specified.";
-    else if (argc >= 2) cout << "Too many arguments provided.";
-
-    // Call the wordcount function
-    long count = wordcount(argv[0]);
-
-    if( count > -1 ) cout << "There are " << count << " words in " << argv[0] << ".";
-    else if ( count == FILE_ERR ) cout << "Could not open file.";
-    else cout << "An error has occurred. Word count unknown.";
-}
 
 void * progress_monitor(void *) {
     // typedef struct {
@@ -39,25 +27,28 @@ void * progress_monitor(void *) {
     //     long InitialValue;
     //     long TerminationValue;
     // } PROGRESS_STATUS;
-    return;
 }
 
+
 long wordcount(string filename) {
-    int size = 0;
+    int fileSize = 0;
+    struct stat fileDetails;
     try
     {
-        // Get the size of the file in bytes
-        size = stat(filename).st_size;
+        // Populate our file stat object
+        stat(filename.c_str(), &fileDetails);
+        // Get the size from the file stat structure
+        fileSize = (int) fileDetails.st_size;
     }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
     }
     
-    typedef struct {
+    struct {
         long *CurrentStatus;
         long InitialValue = 0;
-        long TerminationValue = stat();
+        long TerminationValue = fileSize;
     } PROGRESS_STATUS;
 
     PROGRESS_STATUS *status;
@@ -73,4 +64,19 @@ long wordcount(string filename) {
     // Wait for progress_monitor() to finish
     progressMonitor.join();
     return -1;
+}
+
+
+int main(int argc, char const *argv[])
+{
+    // As of right now, only setting up for one argument
+    if(argc <= 0) cout << "No file specified.";
+    else if (argc >= 2) cout << "Too many arguments provided.";
+
+    // Call the wordcount function
+    long count = wordcount(argv[0]);
+
+    if( count > -1 ) cout << "There are " << count << " words in " << argv[0] << ".";
+    else if ( count == FILE_ERR ) cout << "Could not open file.";
+    else cout << "An error has occurred. Word count unknown.";
 }
