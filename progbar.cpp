@@ -48,14 +48,14 @@ long wordcount(string filename) {
     struct {
         long *CurrentStatus;
         long InitialValue = 0;
-        long TerminationValue = fileSize;
+        long TerminationValue;
     } PROGRESS_STATUS;
 
-    PROGRESS_STATUS *status;
+    PROGRESS_STATUS.TerminationValue = fileSize;
 
     ifstream file(filename);
 
-    thread progressMonitor(progress_monitor, status);
+    thread progressMonitor(progress_monitor, PROGRESS_STATUS);
 
     // Error handling (no arguments handled in main, file errors handled here)
     if ( !file.is_open() ) return FILE_ERR;
