@@ -5,10 +5,11 @@ I recognize that should this not be the case, I will be subject to penalties
 as outlined in the course syllabus.
 Cole Ferguson, RedID - 820562542
 */
-#include <iostream>
-#include <cstring>
-#include <fstream>
-#include <thread>
+#include <iostream>     // i/o
+#include <fstream>      // file handling
+#include <thread>       // thread
+#include <sys/stat.h>   // stat
+
 #define FILE_ERR -2
 
 using namespace std;
@@ -30,17 +31,17 @@ void * progress_monitor(void *) {
 }
 
 
-long wordcount(string filename) {
+long wordcount(const char *filename) {
     int fileSize = 0;
     struct stat fileDetails;
     try
     {
         // Populate our file stat object
-        stat(filename.c_str(), &fileDetails);
+        stat(filename, &fileDetails);
         // Get the size from the file stat structure
         fileSize = (int) fileDetails.st_size;
     }
-    catch(const std::exception& e)
+    catch(const exception &e)
     {
         std::cerr << e.what() << '\n';
     }
