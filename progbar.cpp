@@ -7,7 +7,7 @@ Cole Ferguson, RedID - 820562542
 */
 #include <iostream>     // i/o
 #include <fstream>      // file handling
-#include <thread>       // thread
+#include <pthread.h>      // thread
 #include <sys/stat.h>   // stat
 
 #define FILE_ERR -2
@@ -22,18 +22,32 @@ typedef struct {
 } PROGRESS_STATUS;
 
 
-void * progress_monitor(void *) {
+void * progress_monitor(void *arg) {
     // typedef struct {
     //     long *CurrentStatus;
     //     long InitialValue;
     //     long TerminationValue;
     // } PROGRESS_STATUS;
+    PROGRESS_STATUS status = &((PROGRESS_STATUS*)arg);
+    cout << "ValueInitial: " << status.InitialValue;
+    return NULL;
 }
 
 
 long wordcount(const char *filename) {
     int fileSize = 0;
     struct stat fileDetails;
+    pthread_t id;
+
+    // Set up PROGRESS_STATUS structure
+    typedef struct {
+        long *CurrentStatus;
+        long InitialValue;
+        long TerminationValue;
+    } PROGRESS_STATUS;
+    // Create a new PROGRESS_STATUS
+    PROGRESS_STATUS status;
+
     try
     {
         // Populate our file stat object
@@ -43,34 +57,30 @@ long wordcount(const char *filename) {
     }
     catch(const exception &e)
     {
-        std::cerr << e.what() << '\n';
+        cerr << e.what() << '\n';
     }
-    
-    struct {
-        long *CurrentStatus;
-        long InitialValue = 0;
-        long TerminationValue;
-    } PROGRESS_STATUS;
 
-    PROGRESS_STATUS.TerminationValue = fileSize;
+    status.CurrentStatus = 0;
+    status.InitialValue = 0;
+    status.TerminationValue = fileSize;
 
     ifstream file(filename);
 
-    thread progressMonitor(progress_monitor, PROGRESS_STATUS);
+    pthread_create(&id, NULL, progress_monitor, (void *)&status);
 
-    // Error handling (no arguments handled in main, file errors handled here)
+    // If we cannot open the file, return the corresponding error
     if ( !file.is_open() ) return FILE_ERR;
 
 
     // Wait for progress_monitor() to finish
-    progressMonitor.join();
-    return -1;
+    pthread_join(id, NULL);
+    return -1;  // If we make it all the way to the end without returning anything, return an error
 }
 
 
 int main(int argc, char const *argv[])
 {
-    // As of right now, only setting up for one argument
+    // Conditional test for argument count
     if(argc <= 0) cout << "No file specified.";
     else if (argc >= 2) cout << "Too many arguments provided.";
 
